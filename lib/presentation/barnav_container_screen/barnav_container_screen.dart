@@ -98,7 +98,7 @@ class BarnavContainerScreenState extends State<BarnavContainerScreen> {
       case AppRoutes.transactionScreen:
         return TransactionScreen.builder(context);
       case AppRoutes.profileScreen:
-        return PorfileScreen.builder(context);
+        return ProfileScreen.builder(context);
       case AppRoutes.terminalScreen:
         return TerminalScreen.builder(context);
       case AppRoutes.transactionParJourScreen:

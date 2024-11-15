@@ -6,6 +6,7 @@ class Transaction_HistModel {
   final double successRate;
   final int refusedTransactions;
   final double refusalRate;
+  final String latestUpdate;
 
   Transaction_HistModel({
     required this.totalTransactions,
@@ -13,6 +14,7 @@ class Transaction_HistModel {
     required this.successRate,
     required this.refusedTransactions,
     required this.refusalRate,
+    required this.latestUpdate,
   });
 
   factory Transaction_HistModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Transaction_HistModel {
       successRate: (json['success_rate'] ?? 0).toDouble(),
       refusedTransactions: json['refused_transactions'] ?? 0,
       refusalRate: (json['refusal_rate'] ?? 0).toDouble(),
+      latestUpdate: json['latest_update'] ?? 'N/A',
     );
   }
 }

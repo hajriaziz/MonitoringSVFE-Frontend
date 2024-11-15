@@ -20,6 +20,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   fl_chart: ^0.69.0
   intl: 0.19.0
+  image_picker: ^1.1.2
 dependency_overrides:
   collection: ^1.19.0
   http_parser: ^4.1.0

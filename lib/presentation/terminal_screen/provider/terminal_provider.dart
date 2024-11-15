@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
 import 'package:smtmonitoring/presentation/terminal_screen/models/terminal_model.dart';
+
 class TerminalProvider extends ChangeNotifier {
   TerminalDistributionModel? terminalDistribution; // Model object
   bool isLoading = false;
@@ -20,7 +21,7 @@ class TerminalProvider extends ChangeNotifier {
     return prefs.getString('authToken');
   }
 
-  // Fetch terminal distribution using the token
+// Fetch terminal distribution using the token
   Future<void> fetchTerminalDistribution() async {
     isLoading = true;
     notifyListeners();
@@ -29,10 +30,12 @@ class TerminalProvider extends ChangeNotifier {
       final token = await getTokenFromStorage(); // Retrieve the token
       if (token == null) throw 'No token found. Please log in again.';
 
-      Map<String, dynamic> response = await ApiService().fetchTerminalDistribution(token);
+      Map<String, dynamic> response =
+          await ApiService().fetchTerminalDistribution(token);
       print('Terminal Distribution Data: $response');
 
-      terminalDistribution = TerminalDistributionModel.fromJson(response['terminal_distribution']);
+      // Pass the entire response to TerminalDistributionModel
+      terminalDistribution = TerminalDistributionModel.fromJson(response);
       errorMessage = null; // Clear any previous errors
     } catch (e) {
       print('Error fetching terminal distribution: $e');

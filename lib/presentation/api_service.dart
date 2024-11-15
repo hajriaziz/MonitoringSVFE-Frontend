@@ -1,20 +1,28 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http_parser/http_parser.dart';
 
 class ApiService {
-  final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'http://192.168.1.188:8000';
+  //final String baseUrl = 'http://10.0.2.2:8000';
 
   // Save token to SharedPreferences
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('access_token', token);
+    await prefs.setString('token', token);
+    print('Token saved: $token');
   }
 
   // Retrieve token from SharedPreferences
   Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('access_token');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token =
+        prefs.getString('auth_token'); // Ensure 'auth_token' is the correct key
+    if (token == null) {
+      print('Token not found in SharedPreferences');
+    }
+    return token;
   }
 
   // Clear token from SharedPreferences (optional: for logout)
@@ -91,7 +99,8 @@ class ApiService {
       throw Exception('Failed to fetch KPIs');
     }
   }
-    // Fetch KPIs_hist with automatically retrieved token
+
+  // Fetch KPIs_hist with automatically retrieved token
   Future<Map<String, dynamic>> fetchKPIs_hist(String token) async {
     final url = Uri.parse('$baseUrl/kpis_hist/');
     final response = await http.get(
@@ -167,8 +176,10 @@ class ApiService {
       throw Exception('Failed to fetch system status');
     }
   }
-   // Method to fetch transaction trends
-  Future<List<Map<String, dynamic>>> fetchTransactionTrends(String token) async {
+
+  // Method to fetch transaction trends
+  Future<List<Map<String, dynamic>>> fetchTransactionTrends(
+      String token) async {
     final url = Uri.parse('$baseUrl/transaction_trends/');
     final response = await http.get(
       url,
@@ -180,14 +191,19 @@ class ApiService {
 
     if (response.statusCode == 200) {
       List<dynamic> responseData = json.decode(response.body);
-      return responseData.map((item) => Map<String, dynamic>.from(item)).toList();
+      return responseData
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
     } else {
-      print('Failed to fetch transaction trends. Status: ${response.statusCode}');
+      print(
+          'Failed to fetch transaction trends. Status: ${response.statusCode}');
       throw Exception('Failed to fetch transaction trends');
     }
   }
-     // Method to fetch transaction trends hist
-  Future<List<Map<String, dynamic>>> fetchTransactionTrends_hist(String token) async {
+
+  // Method to fetch transaction trends hist
+  Future<List<Map<String, dynamic>>> fetchTransactionTrends_hist(
+      String token) async {
     final url = Uri.parse('$baseUrl/transaction_trends_hist/');
     final response = await http.get(
       url,
@@ -199,11 +215,91 @@ class ApiService {
 
     if (response.statusCode == 200) {
       List<dynamic> responseData = json.decode(response.body);
-      return responseData.map((item) => Map<String, dynamic>.from(item)).toList();
+      return responseData
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
     } else {
-      print('Failed to fetch transaction trends hist . Status: ${response.statusCode}');
+      print(
+          'Failed to fetch transaction trends hist . Status: ${response.statusCode}');
       throw Exception('Failed to fetch transaction trends hist');
     }
   }
-}
 
+  // Method to fetch user profile
+  Future<Map<String, dynamic>> getUserProfile(String token) async {
+    final url = Uri.parse('$baseUrl/user/user/me');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      print('Failed to fetch user details. Status: ${response.statusCode}');
+      throw Exception('Failed to fetch user details');
+    }
+  }
+
+  // Method to update  user
+  Future<void> updateUserDetails({
+    required String token, // Token passed as a parameter
+    String? username,
+    int? phone,
+    List<int>? imageBytes,
+  }) async {
+    try {
+      final tokenTrimmed = token.trim(); // Ensure no spaces in the token
+      final url = Uri.parse('$baseUrl/user/update_user/me');
+
+      // Create a multipart request
+      final request = http.MultipartRequest('PUT', url)
+        ..headers['Authorization'] = 'Bearer $tokenTrimmed';
+
+      // Add fields conditionally
+      if (username != null && username.isNotEmpty) {
+        request.fields['username'] = username;
+      }
+      if (phone != null) {
+        request.fields['phone'] = phone.toString();
+      }
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        request.files.add(
+  http.MultipartFile.fromBytes(
+    'file', // Nom du champ attendu par le backend
+    imageBytes,
+    filename: 'profile_image.jpg',
+    contentType: MediaType('image', 'jpeg'), // Assurez-vous que le type MIME est correct
+  ),
+);
+      }
+
+      // Debugging logs
+      print('Authorization Header: Bearer $tokenTrimmed');
+      print('Request Fields: ${request.fields}');
+      if (imageBytes != null) {
+        print('Uploading image: ${imageBytes.length} bytes');
+      }
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // Debugging response logs
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        print('User details updated successfully.');
+      } else {
+        print('Failed to update user details. Status: ${response.statusCode}');
+        throw Exception('Failed to update user details: ${response.body}');
+      }
+    } catch (e) {
+      print('Error during user update: $e');
+      rethrow;
+    }
+  }
+}

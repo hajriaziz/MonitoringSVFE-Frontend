@@ -187,7 +187,8 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
       margin: EdgeInsets.symmetric(horizontal: 18.h),
       child: Column(
         children: [
-          Text("msg_29_juillet_10_02".tr, style: theme.textTheme.bodyLarge),
+          Text ( provider.transactionModelObj?.latestUpdate ?? 'N/A', 
+          style: theme.textTheme.bodyLarge),
           SizedBox(height: 8.h),
           Container(
             width: double.infinity,

@@ -128,12 +128,12 @@ class BanqueScreenState extends State<BanqueScreen> {
       child: Column(
         children: [
           Text(
-            "msg_29_juillet_10_02".tr,
+            banqueProvider.kpisData?.latestUpdate ?? 'N/A',
             style: theme.textTheme.bodyLarge,
           ),
           SizedBox(height: 8.h),
           Container(
-            width: double.maxFinite,
+            width: double.infinity,
             padding: EdgeInsets.symmetric(vertical: 4.h),
             decoration: AppDecoration.fillLightblue50.copyWith(
               borderRadius: BorderRadiusStyle.roundedBorderl4,
@@ -153,55 +153,112 @@ class BanqueScreenState extends State<BanqueScreen> {
               ],
             ),
           ),
-          SizedBox(height: 22.h),
-          Container(
-            width: 165.h,
-            //height: 155.h,
-            margin: EdgeInsets.only(bottom: 32.h),
-            padding: EdgeInsets.symmetric(horizontal: 18.h),
-            decoration: AppDecoration.fillLightBlue.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorderl8,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 6.h),
-                Text(
-                  "Code de réponse le plus fréquent",
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium,
-                ),
-                SizedBox(height: 10.h),
-                Text(
-                  banqueProvider.kpisData?.mostFrequentRefusalCode.toString() ??
-                      'N/A',
-                  style: CustomTextStyle.bodyLargeRedA700,
-                ),
-                SizedBox(height: 6.h),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          SizedBox(height: 24.h),
+          // Row for left and right containers
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Container on the Left
+              Expanded(
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 18.h, vertical: 10.h),
+                  decoration: AppDecoration.fillLightBlue.copyWith(
+                    borderRadius: BorderRadiusStyle.roundedBorderl8,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "Nombre T :",
-                        style: theme.textTheme.bodyLarge,
+                        "Code de réponse le plus fréquent",
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium,
                       ),
-                      SizedBox(width: 14.h),
+                      SizedBox(height: 10.h),
                       Text(
-                        banqueProvider.kpisData?.mostFrequentRefusalCount
+                        banqueProvider.kpisData?.mostFrequentRefusalCode
                                 .toString() ??
                             'N/A',
                         style: CustomTextStyle.bodyLargeRedA700,
-                      )
+                      ),
+                      SizedBox(height: 6.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Nombre T :",
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          SizedBox(width: 8.h),
+                          Text(
+                            banqueProvider.kpisData?.mostFrequentRefusalCount
+                                    .toString() ??
+                                'N/A',
+                            style: CustomTextStyle.bodyLargeRedA700,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+              SizedBox(width: 16.h), // Space between the containers
+
+              // Container on the Right
+              Expanded(
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 18.h, vertical: 10.h),
+                  decoration: AppDecoration.fillLightblue50.copyWith(
+                    borderRadius: BorderRadiusStyle.roundedBorderl8,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Taux de refus par rapport aux codes critiques",
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      SizedBox(height: 10.h),
+                      ...banqueProvider.kpisData?.criticalCodeRates.entries
+                              .map((entry) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 4.h),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Code ${entry.key} :",
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                  Text(
+                                    "${entry.value.toStringAsFixed(2)}%", // Affiche valeur correctement
+                                    style: CustomTextStyle.bodyLargeRedA700,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList() ??
+                          [
+                            Center(
+                              child: Text(
+                                'Aucun code critique disponible.',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+          SizedBox(height: 22.h),
+
+          // Other containers or widgets below...
         ],
       ),
     );

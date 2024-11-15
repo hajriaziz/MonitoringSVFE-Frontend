@@ -28,7 +28,7 @@ class AppRoutes {
         launchScreen: LaunchScreen.builder,
         loginScreen: LoginScreen.builder,
         transactionScreen: TransactionScreen.builder,
-        profileScreen: PorfileScreen.builder,
+        profileScreen: ProfileScreen.builder,
         terminalScreen: TerminalScreen.builder,
         transactionParJourScreen: TransactionParJourScreen.builder,
         banqueScreen: BanqueScreen.builder,

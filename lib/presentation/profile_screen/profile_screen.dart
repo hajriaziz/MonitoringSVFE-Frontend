@@ -1,37 +1,53 @@
+import 'dart:typed_data';
+
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:smtmonitoring/core/utils/validation_functions.dart';
+import 'package:smtmonitoring/presentation/api_service.dart';
 import 'package:smtmonitoring/presentation/profile_screen/provider/profile_provider.dart';
 import '../../core/app_export.dart';
-import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_iconbutton.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
-import '../../widgets/custom_switch.dart';
 import '../../widgets/custom_text_form_field.dart';
 
-class PorfileScreen extends StatefulWidget {
-  const PorfileScreen({Key? key})
-      : super(
-          key: key,
-        );
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
+
   @override
-  PorfileScreenState createState() => PorfileScreenState();
+  ProfileScreenState createState() => ProfileScreenState();
+
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => PorfileProvider(),
-      child: PorfileScreen(),
+      create: (context) => ProfileProvider(apiService: ApiService()),
+      child: const ProfileScreen(),
     );
   }
 }
 
-// ignore_for_file: must_be_immutable
-class PorfileScreenState extends State<PorfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
+    // Use Future.microtask to ensure the provider context is available before making the call
+    Future.microtask(() async {
+      final provider = Provider.of<ProfileProvider>(context, listen: false);
+
+      // Retrieve the token and fetch the user profile data if needed
+      String? token = await provider.getTokenFromStorage();
+      if (token != null && provider.profileModel == null) {
+        // Fetch user profile if not already loaded
+        await provider.fetchUserProfile();
+      } else {
+        print("No token found. Please log in.");
+      }
+    });
   }
 
   @override
@@ -190,20 +206,26 @@ class PorfileScreenState extends State<PorfileScreen> {
           SizedBox(height: 2.h),
           Padding(
             padding: EdgeInsets.only(right: 20.h),
-            child: Selector<PorfileProvider, TextEditingController?>(
+            child: Selector<ProfileProvider, TextEditingController?>(
               selector: (context, provider) => provider.userNameController,
               builder: (context, userNameController, child) {
                 return CustomTextFormField(
                   controller: userNameController,
-                  //hintText: "lbl_aziz_hajri2".tr,
+                  hintText: "Enter your username",
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 20.h,
                     vertical: 4.h,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    return null;
+                  },
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );
@@ -227,21 +249,26 @@ class PorfileScreenState extends State<PorfileScreen> {
           SizedBox(height: 6.h),
           Padding(
             padding: EdgeInsets.only(right: 22.h),
-            child: Selector<PorfileProvider, TextEditingController?>(
+            child: Selector<ProfileProvider, TextEditingController?>(
               selector: (context, provider) => provider.phoneController,
               builder: (context, phoneController, child) {
                 return CustomTextFormField(
                   controller: phoneController,
                   hintText: "msg_216_555_5555_55".tr,
-                  hintStyle: CustomTextStyle.bodyMediumPoppinsTela900,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 20.h,
                     vertical: 4.h,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    return null;
+                  },
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );
@@ -265,7 +292,7 @@ class PorfileScreenState extends State<PorfileScreen> {
           SizedBox(height: 6.h),
           Padding(
             padding: EdgeInsets.only(right: 22.h),
-            child: Selector<PorfileProvider, TextEditingController?>(
+            child: Selector<ProfileProvider, TextEditingController?>(
               selector: (context, provider) => provider.emailController,
               builder: (context, emailController, child) {
                 return CustomTextFormField(
@@ -279,15 +306,16 @@ class PorfileScreenState extends State<PorfileScreen> {
                   ),
                   validator: (value) {
                     if (value == null ||
-                        (!isValidEmail(value, isRequired: true))) {
-                      return "err_msg_please_enter_valid_email";
+                        value.isEmpty ||
+                        !isValidEmail(value)) {
+                      return "Please enter a valid email address";
                     }
                     return null;
                   },
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );
@@ -317,7 +345,7 @@ class PorfileScreenState extends State<PorfileScreen> {
                         style: theme.textTheme.titleSmall,
                       ),
                     ),
-                    Selector<PorfileProvider, bool?>(
+                    /*Selector<PorfileProvider, bool?>(
                       selector: (context, provider) =>
                           provider.isSelectedSwitch,
                       builder: (context, isSelectedSwitch, child) {
@@ -335,7 +363,7 @@ class PorfileScreenState extends State<PorfileScreen> {
                           },
                         );
                       },
-                    )
+                    )*/
                   ],
                 ),
               ),
@@ -346,7 +374,21 @@ class PorfileScreenState extends State<PorfileScreen> {
                 text: "lbl_update_profile".tr,
                 buttonStyle: CustomButtonStyles.fillBleu,
                 buttonTextStyle: theme.textTheme.titleSmall!,
-              )
+                onPressed: () async {
+                  final provider =
+                      Provider.of<ProfileProvider>(context, listen: false);
+                  try {
+                    print('Submit button pressed');
+                    // Get the imageBytes from the provider
+                    Uint8List? imageBytes = provider.imageBytes;
+
+                    // Pass the image bytes (if any) to the updateUserProfile method
+                    await provider.updateUserProfile(imageBytes);
+                  } catch (e) {
+                    print('Error: $e');
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -356,6 +398,31 @@ class PorfileScreenState extends State<PorfileScreen> {
 
   /// Section Widget
   Widget _buildProfileImageSection(BuildContext context) {
+    File? _imageFile;
+    Uint8List? _imageBytes;
+
+    Future<void> _pickImage() async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+
+        // Convert the image to a byte array (Uint8List)
+        _imageBytes = await _imageFile!.readAsBytes();
+        if (_imageBytes == null || _imageBytes!.isEmpty) {
+          print('Erreur : Impossible de convertir l\'image en bytes.');
+          return;
+        }
+        // Store the image bytes in the provider
+        final provider = Provider.of<ProfileProvider>(context, listen: false);
+        provider.setImageBytes(
+            _imageBytes); // Store the image bytes in the provider
+      }
+    }
+
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
@@ -365,14 +432,23 @@ class PorfileScreenState extends State<PorfileScreen> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            CustomImageView(
-              imagePath: ImageConstant.imgProfil,
-              height: 130.h,
-              width: double.maxFinite,
-              radius: BorderRadius.circular(
-                56.h,
-              ),
-            ),
+            // Display selected image or a default image
+            _imageFile == null
+                ? CustomImageView(
+                    imagePath: ImageConstant.imgProfil, // default image
+                    height: 130.h,
+                    width: double.maxFinite,
+                    radius: BorderRadius.circular(56.h),
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(56.h),
+                    child: Image.file(
+                      _imageFile!,
+                      height: 130.h,
+                      width: double.maxFinite,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
             Padding(
               padding: EdgeInsets.only(right: 8.h),
               child: CustomIconButton(
@@ -381,11 +457,12 @@ class PorfileScreenState extends State<PorfileScreen> {
                 padding: EdgeInsets.all(4.h),
                 decoration: IconButtonStyleHelper.fillBlue,
                 alignment: Alignment.bottomRight,
+                onTap: _pickImage, // Call the method to pick an image
                 child: CustomImageView(
                   imagePath: ImageConstant.imgAdd,
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

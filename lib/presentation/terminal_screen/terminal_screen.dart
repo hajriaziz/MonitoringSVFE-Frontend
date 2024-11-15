@@ -129,7 +129,8 @@ class TerminalScreenState extends State<TerminalScreen> {
       child: Column(
         children: [
           Text(
-            "msg_29_juillet_10_02".tr,
+            terminalProvider.terminalDistribution?.latestUpdate.toString() ??
+                'N/A',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           SizedBox(height: 36.h),
@@ -408,6 +409,7 @@ class TerminalScreenState extends State<TerminalScreen> {
       ],
     );
   }
+
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
     NavigatorService.goBack();

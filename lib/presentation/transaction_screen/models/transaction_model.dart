@@ -8,6 +8,7 @@ class TransactionModel {
   final double refusalRate;
   final int mostFrequentRefusalCode;
   final int mostFrequentRefusalCount;
+  final String latestUpdate;
 
   TransactionModel({
     required this.totalTransactions,
@@ -17,6 +18,7 @@ class TransactionModel {
     required this.refusalRate,
     required this.mostFrequentRefusalCode,
     required this.mostFrequentRefusalCount,
+    required this.latestUpdate,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class TransactionModel {
       refusalRate: (json['refusal_rate'] ?? 0).toDouble(),
       mostFrequentRefusalCode: json['most_frequent_refusal_code'] ?? 0,
       mostFrequentRefusalCount: json['most_frequent_refusal_count'] ?? 0,
+      latestUpdate: json['latest_update'] ?? 'N/A',
     );
   }
 }
