@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:smtmonitoring/core/app_export.dart';
-import 'package:smtmonitoring/core/utils/image_constant.dart';
-import 'package:smtmonitoring/theme/theme_helper.dart';
 
 enum BottomBarEnum { Home, AnalyseActule, Terminal, Journaliee, Profil, Bank }
 

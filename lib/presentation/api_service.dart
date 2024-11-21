@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http_parser/http_parser.dart';
+import 'package:smtmonitoring/presentation/profile_screen/models/profile_model.dart';
 
 class ApiService {
   final String baseUrl = 'http://192.168.1.188:8000';
@@ -227,79 +227,71 @@ class ApiService {
 
   // Method to fetch user profile
   Future<Map<String, dynamic>> getUserProfile(String token) async {
-    final url = Uri.parse('$baseUrl/user/user/me');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      print('Failed to fetch user details. Status: ${response.statusCode}');
-      throw Exception('Failed to fetch user details');
+    final url = Uri.parse('$baseUrl/user/user/me'); // Check correct endpoint
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final responseBody =
+            response.body; // Correct way to access the response body
+        print('Response body: $responseBody');
+        final jsonResponse =
+            json.decode(responseBody); // Decoding the JSON response
+        return jsonResponse;
+      } else {
+        print('Failed to fetch user details. Status: ${response.statusCode}');
+        throw Exception(
+            'Failed to fetch user details. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
     }
   }
 
   // Method to update  user
-  Future<void> updateUserDetails({
-    required String token, // Token passed as a parameter
+  Future<ProfileModel> updateUserDetails({
+    required String token,
     String? username,
-    int? phone,
-    List<int>? imageBytes,
+    String? phone,
+    String? imageFilePath, // Use consistent naming
   }) async {
-    try {
-      final tokenTrimmed = token.trim(); // Ensure no spaces in the token
-      final url = Uri.parse('$baseUrl/user/update_user/me');
+    final uri = Uri.parse("$baseUrl/user/update_user/me");
+    print("Base URL: $uri");
 
-      // Create a multipart request
-      final request = http.MultipartRequest('PUT', url)
-        ..headers['Authorization'] = 'Bearer $tokenTrimmed';
+    final request = http.MultipartRequest('PUT', uri)
+      ..headers['Authorization'] = 'Bearer $token';
 
-      // Add fields conditionally
-      if (username != null && username.isNotEmpty) {
-        request.fields['username'] = username;
-      }
-      if (phone != null) {
-        request.fields['phone'] = phone.toString();
-      }
-      if (imageBytes != null && imageBytes.isNotEmpty) {
-        request.files.add(
-  http.MultipartFile.fromBytes(
-    'file', // Nom du champ attendu par le backend
-    imageBytes,
-    filename: 'profile_image.jpg',
-    contentType: MediaType('image', 'jpeg'), // Assurez-vous que le type MIME est correct
-  ),
-);
-      }
+    if (username != null) {
+      request.fields['username'] = username;
+    }
 
-      // Debugging logs
-      print('Authorization Header: Bearer $tokenTrimmed');
-      print('Request Fields: ${request.fields}');
-      if (imageBytes != null) {
-        print('Uploading image: ${imageBytes.length} bytes');
-      }
+    if (phone != null) {
+      request.fields['phone'] = phone;
+    }
 
-      // Send the request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+    if (imageFilePath != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+            'file', imageFilePath), // Check field name
+      );
+    }
 
-      // Debugging response logs
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    final response = await request.send();
 
-      if (response.statusCode == 200) {
-        print('User details updated successfully.');
-      } else {
-        print('Failed to update user details. Status: ${response.statusCode}');
-        throw Exception('Failed to update user details: ${response.body}');
-      }
-    } catch (e) {
-      print('Error during user update: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      print('Response body: $responseBody');
+      final jsonResponse = json.decode(responseBody);
+      return ProfileModel.fromJson(jsonResponse);
+    } else {
+      final responseBody = await response.stream.bytesToString();
+      print('Error response body: $responseBody');
+      throw Exception(
+          'Failed to update user details: ${response.reasonPhrase}');
     }
   }
 }

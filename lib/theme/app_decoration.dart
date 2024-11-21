@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:smtmonitoring/core/app_export.dart';
-import 'package:smtmonitoring/theme/theme_helper.dart';
 
 class AppDecoration {
   // Fill decorations

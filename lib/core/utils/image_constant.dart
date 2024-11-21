@@ -29,7 +29,7 @@ class ImageConstant {
   static String imgVectorOnprimary = '$imagePath/img_vector_onprimary.svg';
 
   // Profile images
-  static String imgProfil = '$imagePath/DSC_3484_1.jpg';
+  static String imgProfil = '$imagePath/profil.png';
 
   static String imgAdd = '$imagePath/image-add.svg';
 

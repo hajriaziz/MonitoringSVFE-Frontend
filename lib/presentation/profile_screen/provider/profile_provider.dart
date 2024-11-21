@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +18,23 @@ class ProfileProvider extends ChangeNotifier {
   String? errorMessage;
   bool isSelectedSwitch = false;
 
+  // For storing image path and file
+  String? _imagePath;
+  File? _imageFile;
+
+  String? get imagePath => _imagePath;
+  File? get imageFile => _imageFile;
+
   ProfileProvider({required this.apiService});
+  Uint8List? _base64Image;
+  Uint8List? get base64Image => _base64Image;
+
+  void setBase64Image(String? base64String) {
+    if (base64String != null && base64String.isNotEmpty) {
+      _base64Image = base64Decode(base64String);
+      notifyListeners();
+    }
+  }
 
   @override
   void dispose() {
@@ -26,14 +44,16 @@ class ProfileProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  Uint8List? _imageBytes;  // Field to store the image bytes
+  // Method to set the image file
+  void setImageFile(File? imageFile) {
+    _imageFile = imageFile;
+    notifyListeners();
+    // Save to SharedPreferences
+  }
 
-  // Getter to access the imageBytes
-  Uint8List? get imageBytes => _imageBytes;
-
-  // Method to update the imageBytes
-  void setImageBytes(Uint8List? imageBytes) {
-    _imageBytes = imageBytes;
+  // Method to set image URL from backend
+  void setImageUrl(String? url) {
+    _imagePath = url;
     notifyListeners();
   }
 
@@ -43,6 +63,7 @@ class ProfileProvider extends ChangeNotifier {
     return prefs.getString('authToken');
   }
 
+  // Fetch user profile details
   // Fetch user profile details
   Future<void> fetchUserProfile() async {
     try {
@@ -57,10 +78,19 @@ class ProfileProvider extends ChangeNotifier {
       final response = await apiService.getUserProfile(token);
       profileModel = ProfileModel.fromJson(response);
 
-      // Update the controllers with the fetched data
+      // Update controllers with data
       userNameController.text = profileModel?.username ?? '';
       phoneController.text = profileModel?.phone ?? '';
       emailController.text = profileModel?.email ?? '';
+
+      // Handle image source
+      final imagePath = profileModel?.imagePath;
+      if (imagePath != null && imagePath.startsWith('data:image')) {
+        // Handle base64-encoded images
+        setBase64Image(imagePath.split(',').last);
+      } else {
+        setBase64Image(null);
+      }
 
       errorMessage = null;
     } catch (e) {
@@ -72,7 +102,7 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   // Update user profile details
-  Future<void> updateUserProfile(Uint8List? imageBytes) async {
+  Future<void> updateUserProfile() async {
     try {
       isLoading = true;
       notifyListeners();
@@ -82,10 +112,16 @@ class ProfileProvider extends ChangeNotifier {
         throw Exception('Token not found. Please login again.');
       }
 
+      String? imageFilePath;
+      if (_imageFile != null) {
+        imageFilePath = _imageFile!.path;
+      }
+
       await apiService.updateUserDetails(
         username: userNameController.text,
-        phone: int.tryParse(phoneController.text),
-        imageBytes: imageBytes?.toList(), token: token,
+        phone: phoneController.text,
+        imageFilePath: imageFilePath,
+        token: token,
       );
 
       // Refresh the profile after update

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:smtmonitoring/core/app_export.dart';
-import 'package:smtmonitoring/core/utils/pref_utils.dart';
 
 LightCodeColors get appTheme => ThemeHelper().themeColor();
 ThemeData get theme => ThemeHelper().themeData();

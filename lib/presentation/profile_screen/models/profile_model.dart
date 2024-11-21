@@ -2,32 +2,32 @@ class ProfileModel {
   String? username;
   String? phone;
   String? email;
-  String? image;
+  String? imagePath; // Update the field name to match the backend response
 
   ProfileModel({
     this.username,
     this.phone,
     this.email,
-    this.image,
+    this.imagePath,
   });
 
-  // Méthode pour convertir un JSON en `ProfileModel`
+  // Method to convert JSON to `ProfileModel`
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       username: json['username'],
       phone: json['phone'],
       email: json['email'],
-      image: json['image'],
+      imagePath: json['image'], // Map the new field
     );
   }
 
-  // Méthode pour convertir un `ProfileModel` en JSON
+  // Method to convert `ProfileModel` to JSON
   Map<String, dynamic> toJson() {
     return {
       'username': username,
       'phone': phone,
       'email': email,
-      'image': image,
+      'image_path': imagePath, // Match the backend field
     };
   }
 }

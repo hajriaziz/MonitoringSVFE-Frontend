@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:smtmonitoring/presentation/api_service.dart';
+import 'package:smtmonitoring/presentation/profile_screen/provider/profile_provider.dart';
 import '../../core/app_export.dart';
-import 'provider/barnav_provider.dart';
-// ignore_for_file: must_be_immutable
 
 class BarnavPage extends StatefulWidget {
   const BarnavPage({Key? key})
@@ -13,7 +13,7 @@ class BarnavPage extends StatefulWidget {
   BarnavPageState createState() => BarnavPageState();
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => BarnavProvider(),
+      create: (context) => ProfileProvider(apiService: ApiService()),
       child: BarnavPage(),
     );
   }
@@ -23,10 +23,24 @@ class BarnavPageState extends State<BarnavPage> {
   @override
   void initState() {
     super.initState();
+    // Use Future.microtask to ensure the provider context is available before making the call
+    Future.microtask(() async {
+      final provider = Provider.of<ProfileProvider>(context, listen: false);
+
+      // Retrieve the token and fetch the user profile data if needed
+      String? token = await provider.getTokenFromStorage();
+      if (token != null && provider.profileModel == null) {
+        // Fetch user profile if not already loaded
+        await provider.fetchUserProfile();
+      } else {
+        print("No token found. Please log in.");
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: appTheme.lightBlue50,
@@ -63,22 +77,48 @@ class BarnavPageState extends State<BarnavPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomImageView(
-                      imagePath: ImageConstant.imgProfil,
-                      height: 60.h,
-                      width: 56.h,
-                      radius: BorderRadius.circular(
-                        28.h,
+                    if (profileProvider.base64Image != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(28.h),
+                        child: Image.memory(
+                          profileProvider.base64Image!,
+                          height: 60.h,
+                          width: 56.h,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    else if (profileProvider.imagePath != null &&
+                        profileProvider.imagePath!.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(28.h),
+                        child: Image.network(
+                          profileProvider.imagePath!,
+                          height: 60.h,
+                          width: 56.h,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    else
+                      CustomImageView(
+                        imagePath: ImageConstant.imgProfil,
+                        height: 60.h,
+                        width: 56.h,
+                        radius: BorderRadius.circular(
+                          28.h,
+                        ),
+                        alignment: Alignment.center,
                       ),
-                      alignment: Alignment.center,
-                    ),
                     SizedBox(width: 10.h),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Aziz Hajri",
+                            (profileProvider
+                                        .profileModel?.username?.isNotEmpty ==
+                                    true
+                                ? profileProvider.profileModel!.username
+                                : "SMT Utilisateur")!,
                             style: CustomTextStyle.titleLargeOnPrimaryBold,
                           ),
                           SizedBox(

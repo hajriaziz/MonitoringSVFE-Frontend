@@ -1,11 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:smtmonitoring/core/utils/validation_functions.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
 import 'package:smtmonitoring/presentation/profile_screen/provider/profile_provider.dart';
+import 'package:smtmonitoring/widgets/custom_switch.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -143,6 +142,8 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   /// Section Widget
   Widget _buildProfileInfo(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(
+        context); // Assuming you use Provider for state management
     return SizedBox(
       width: double.maxFinite,
       child: Align(
@@ -153,7 +154,9 @@ class ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               Text(
-                "lbl_aziz_hajri".tr,
+                (profileProvider.profileModel?.username?.isNotEmpty == true
+                    ? profileProvider.profileModel!.username
+                    : "SMT Utilisateur")!, // Ensure it's non-null
                 style: CustomTextStyle.titleLargeOnPrimaryBold,
               ),
               RichText(
@@ -345,7 +348,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                         style: theme.textTheme.titleSmall,
                       ),
                     ),
-                    /*Selector<PorfileProvider, bool?>(
+                    Selector<ProfileProvider, bool?>(
                       selector: (context, provider) =>
                           provider.isSelectedSwitch,
                       builder: (context, isSelectedSwitch, child) {
@@ -358,12 +361,12 @@ class ProfileScreenState extends State<ProfileScreen> {
                           value: isSelectedSwitch,
                           onChange: (value) {
                             context
-                                .read<PorfileProvider>()
+                                .read<ProfileProvider>()
                                 .changeSwitchBox(value);
                           },
                         );
                       },
-                    )*/
+                    )
                   ],
                 ),
               ),
@@ -379,11 +382,9 @@ class ProfileScreenState extends State<ProfileScreen> {
                       Provider.of<ProfileProvider>(context, listen: false);
                   try {
                     print('Submit button pressed');
-                    // Get the imageBytes from the provider
-                    Uint8List? imageBytes = provider.imageBytes;
 
-                    // Pass the image bytes (if any) to the updateUserProfile method
-                    await provider.updateUserProfile(imageBytes);
+                    // Simply update the user profile without needing to upload image again
+                    await provider.updateUserProfile();
                   } catch (e) {
                     print('Error: $e');
                   }
@@ -399,27 +400,23 @@ class ProfileScreenState extends State<ProfileScreen> {
   /// Section Widget
   Widget _buildProfileImageSection(BuildContext context) {
     File? _imageFile;
-    Uint8List? _imageBytes;
+    final profileProvider = Provider.of<ProfileProvider>(
+        context); // Assuming you use Provider for state management
 
+    // Pick an image from the gallery
     Future<void> _pickImage() async {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile != null) {
         setState(() {
-          _imageFile = File(pickedFile.path);
+          _imageFile = File(pickedFile.path); // Store the picked file
         });
 
-        // Convert the image to a byte array (Uint8List)
-        _imageBytes = await _imageFile!.readAsBytes();
-        if (_imageBytes == null || _imageBytes!.isEmpty) {
-          print('Erreur : Impossible de convertir l\'image en bytes.');
-          return;
-        }
-        // Store the image bytes in the provider
+        // Store the image file in the provider (only path is passed to the backend)
         final provider = Provider.of<ProfileProvider>(context, listen: false);
-        provider.setImageBytes(
-            _imageBytes); // Store the image bytes in the provider
+        provider
+            .setImageFile(_imageFile); // Store the image file in the provider
       }
     }
 
@@ -432,23 +429,45 @@ class ProfileScreenState extends State<ProfileScreen> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Display selected image or a default image
-            _imageFile == null
-                ? CustomImageView(
-                    imagePath: ImageConstant.imgProfil, // default image
-                    height: 130.h,
-                    width: double.maxFinite,
-                    radius: BorderRadius.circular(56.h),
-                  )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(56.h),
-                    child: Image.file(
-                      _imageFile!,
-                      height: 130.h,
-                      width: double.maxFinite,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+// Display the selected image or a default image if no image is selected
+            if (profileProvider.base64Image != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(56.h),
+                child: Image.memory(
+                  profileProvider.base64Image!,
+                  height: 130.h,
+                  width: double.maxFinite,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else if (profileProvider.imageFile != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(56.h),
+                child: Image.file(
+                  profileProvider.imageFile!,
+                  height: 130.h,
+                  width: double.maxFinite,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else if (profileProvider.imagePath != null &&
+                profileProvider.imagePath!.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(56.h),
+                child: Image.network(
+                  profileProvider.imagePath!,
+                  height: 130.h,
+                  width: double.maxFinite,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else
+              CustomImageView(
+                imagePath: ImageConstant.imgProfil,
+                height: 130.h,
+                width: double.maxFinite,
+                radius: BorderRadius.circular(56.h),
+              ),
             Padding(
               padding: EdgeInsets.only(right: 8.h),
               child: CustomIconButton(
@@ -457,9 +476,9 @@ class ProfileScreenState extends State<ProfileScreen> {
                 padding: EdgeInsets.all(4.h),
                 decoration: IconButtonStyleHelper.fillBlue,
                 alignment: Alignment.bottomRight,
-                onTap: _pickImage, // Call the method to pick an image
+                onTap: _pickImage, // Call method to pick an image
                 child: CustomImageView(
-                  imagePath: ImageConstant.imgAdd,
+                  imagePath: ImageConstant.imgAdd, // icon to add image
                 ),
               ),
             ),
