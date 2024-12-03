@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:smtmonitoring/core/app_export.dart';
+import 'package:smtmonitoring/presentation/backgroundservice%20.dart';
+import 'package:smtmonitoring/presentation/notification_service.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    PrefUtils().init()
-  ]).then((value) {
-    runApp(MyApp());
-  });
+
+  await NotificationService.initialize();
+  await NotificationService.requestNotificationPermission();
+
+  initializeBackgroundService();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {

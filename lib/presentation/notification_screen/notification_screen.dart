@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:smtmonitoring/presentation/notification_screen/models/notification_model.dart';
 import 'package:smtmonitoring/presentation/notification_screen/provider/notification_provider.dart';
 import 'package:smtmonitoring/widgets/app_bar/appbar_leading_image.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_iconbutton.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import 'models/alertslist_item_model.dart';
 import 'widgets/alertslist_item_widget.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -27,6 +27,20 @@ class NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(() async {
+      final provider =
+          Provider.of<NotificationProvider>(context, listen: false);
+      // Retrieve the token from storage
+      String? token = await provider.getTokenFromStorage();
+      if (token != null) {
+        // Fetch KPIs if the token is found
+        provider.fetchNotifications().catchError((error) {
+          print("Error fetching Alerts: $error");
+        });
+      } else {
+        print("No token found. Please login.");
+      }
+    });
   }
 
   @override
@@ -44,13 +58,15 @@ class NotificationScreenState extends State<NotificationScreen> {
           decoration: AppDecoration.fillLightBlue.copyWith(
             borderRadius: BorderRadiusStyle.customBorderTL70,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              _buildTodaySection(context),
-              SizedBox(height: 12.h),
-              _buildAlertsList(context)
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTodaySection(context),
+                SizedBox(height: 12.h),
+                _buildAlertsList(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -84,10 +100,12 @@ class NotificationScreenState extends State<NotificationScreen> {
             top: 15.h,
             right: 10.h,
           ),
+          notificationNotifier: ValueNotifier(false),
         ),
         AppbarTrailingIconbutton(
           imagePath: ImageConstant.imgVector,
           margin: EdgeInsets.only(left: 11.h, top: 15.h, right: 30.h),
+          notificationNotifier: ValueNotifier(false),
         )
       ],
     );
@@ -118,29 +136,56 @@ class NotificationScreenState extends State<NotificationScreen> {
       margin: EdgeInsets.only(left: 14.h),
       child: Consumer<NotificationProvider>(
         builder: (context, provider, child) {
-          return ListView.separated(
-            padding: EdgeInsets.zero,
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            separatorBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 3.0.h),
-                child: Divider(
-                  height: 1.h,
-                  thickness: 1.h,
-                  color: appTheme.tealA700,
-                ),
-              );
-            },
-            itemCount: provider.notificationModelObj.alertslistItemList.length,
-            itemBuilder: (context, index) {
-              AlertslistItemModel model =
-                  provider.notificationModelObj.alertslistItemList[index];
-              return AlertslistItemWidget(
-                model,
-              );
-            },
-          );
+          if (provider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else if (provider.errorMessage != null) {
+            return Center(child: Text(provider.errorMessage!));
+          } else if (provider.notifications.isEmpty) {
+            return Center(child: Text("Aucune alerte disponible."));
+          } else {
+            return ListView.separated(
+              padding: EdgeInsets.zero,
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              separatorBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 3.0.h),
+                  child: Divider(
+                    height: 1.h,
+                    thickness: 1.h,
+                    color: appTheme.tealA700,
+                  ),
+                );
+              },
+              itemCount: provider.notifications.length,
+              itemBuilder: (context, index) {
+                NotificationModel notification = provider.notifications[index];
+
+                return Dismissible(
+                  key: ValueKey(notification.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20.h),
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onDismissed: (direction) {
+                    // Appeler removeNotification dans le provider
+                    provider.removeNotification(index);
+                    // Optionnel : Afficher un message de confirmation
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Notification supprimée')),
+                    );
+                  },
+                  child: AlertslistItemWidget(notification),
+                );
+              },
+            );
+          }
         },
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smtmonitoring/presentation/notification_service.dart';
 import 'package:smtmonitoring/presentation/transaction_par_jour_screen/provider/transaction_par_jour_provider.dart';
+import 'package:smtmonitoring/presentation/websocket_connection.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_iconbutton.dart';
@@ -24,9 +26,23 @@ class TransactionParJourScreen extends StatefulWidget {
 }
 
 class TransactionParJourScreenState extends State<TransactionParJourScreen> {
+  final WebSocketService webSocketService = WebSocketService();
+  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
   @override
   void initState() {
     super.initState();
+    // Démarrez le service WebSocket
+    webSocketService.connect(webSocketUrl);
+
+    // Écoutez les notifications entrantes et déclenchez l'état de notification
+    webSocketService.messages.listen((message) {
+      webSocketService.hasNotification.value = true;
+      // Affiche une notification locale avec le message reçu
+      NotificationService.showNotification("Nouvelle Notification", message);
+    });
+
+    // Initialise et surveille les permissions de notification
+    NotificationService.monitorNotificationPermissions();
     Future.microtask(() async {
       final provider =
           Provider.of<Transaction_HistProvider>(context, listen: false);
@@ -45,6 +61,13 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
         print("No token found. Please login.");
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Déconnectez le WebSocket
+    webSocketService.disconnect();
+    super.dispose();
   }
 
   @override
@@ -93,18 +116,25 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
             top: 15.h,
             right: 10.h,
           ),
+          notificationNotifier: ValueNotifier(false),
         ),
         AppbarTrailingIconbutton(
-          imagePath: ImageConstant.imgVector,
+          imagePath: ImageConstant.imgVector, // Icône par défaut
+          imagePathNotification:
+              ImageConstant.imgAlert, // Icône de notification
           margin: EdgeInsets.only(
             left: 11.h,
             top: 15.h,
             right: 30.h,
           ),
+          notificationNotifier:
+              webSocketService.hasNotification, // Gestion dynamique
           onTap: () {
+            // Réinitialise l'état des notifications après clic
+            webSocketService.resetNotificationState();
             onTapArrowleftone2(context);
           },
-        )
+        ),
       ],
     );
   }
@@ -187,8 +217,8 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
       margin: EdgeInsets.symmetric(horizontal: 18.h),
       child: Column(
         children: [
-          Text ( provider.transactionModelObj?.latestUpdate ?? 'N/A', 
-          style: theme.textTheme.bodyLarge),
+          Text(provider.transactionModelObj?.latestUpdate ?? 'N/A',
+              style: theme.textTheme.bodyLarge),
           SizedBox(height: 8.h),
           Container(
             width: double.infinity,

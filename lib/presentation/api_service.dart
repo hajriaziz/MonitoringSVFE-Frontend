@@ -294,4 +294,23 @@ class ApiService {
           'Failed to update user details: ${response.reasonPhrase}');
     }
   }
+
+// Fetch alerts (Mode Pull)
+  Future<List<dynamic>> fetchAlerts(String token, {int limit = 10}) async {
+    final url = Uri.parse('$baseUrl/alerts/?limit=$limit');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body)['alerts'];
+    } else {
+      print('Failed to fetch alerts. Status: ${response.statusCode}');
+      throw Exception('Failed to fetch alerts');
+    }
+  }
 }

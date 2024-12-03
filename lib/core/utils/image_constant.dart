@@ -47,6 +47,8 @@ class ImageConstant {
 
   static String imgVector = '$imagePath/Notification.svg';
 
+  static String imgAlert = '$imagePath/alert.svg';
+
   static String imgArea2 = '$imagePath/img_area_2.png';
 
   static String imgPlay = '$imagePath/Point 01 color.svg';

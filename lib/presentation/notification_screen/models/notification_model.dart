@@ -1,16 +1,29 @@
-import '../../../core/app_export.dart';
-import 'alertslist_item_model.dart';
-
-// ignore_for_file: must_be_immutable
 class NotificationModel {
-  List<AlertslistItemModel> alertslistItemList = [
-    AlertslistItemModel(
-        muteIcon: ImageConstant.imgVector,
-        alertText: "Alerte !",
-        anomalyText:
-            "Une anomalie de performance a été détectée. Vérifiez les détails pour plus d'informations",
-        timeText: "17:00 - Juillet 29"),
-    AlertslistItemModel(),
-    AlertslistItemModel()
-  ];
+  final int id;
+  final String message;
+  final DateTime createdAt;
+
+  NotificationModel({
+    required this.id,
+    required this.message,
+    required this.createdAt,
+  });
+
+  // Convertir un JSON en instance de NotificationModel
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    return NotificationModel(
+      id: json['id'],
+      message: json['message'],
+      createdAt: DateTime.parse(json['created_at']),
+    );
+  }
+
+  // Convertir une instance de NotificationModel en JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'message': message,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
 }

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../widgets/custom_icon_button.dart';
-import '../models/alertslist_item_model.dart';
+import '../models/notification_model.dart';
 
-// ignore_for_file: must_be_immutable
 class AlertslistItemWidget extends StatelessWidget {
-  AlertslistItemWidget(this.alertslistItemModelObj, {Key? key})
-      : super(
-          key: key,
-        );
-  AlertslistItemModel alertslistItemModelObj;
+  final NotificationModel notification;
+
+  AlertslistItemWidget(this.notification, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,7 @@ class AlertslistItemWidget extends StatelessWidget {
               padding: EdgeInsets.all(4.h),
               decoration: IconButtonStyleHelper.fillTealA,
               child: CustomImageView(
-                imagePath: alertslistItemModelObj.muteIcon!,
+                imagePath: ImageConstant.imgVector, // Icône par défaut
               ),
             ),
           ),
@@ -42,14 +39,14 @@ class AlertslistItemWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    alertslistItemModelObj.alertText!,
+                    "Alerte !", // Texte statique ou configurable
                     style: CustomTextStyle.titleSmallOnErrorContainer,
                   ),
                   Container(
                     width: 216.h,
                     margin: EdgeInsets.only(left: 4.h),
                     child: Text(
-                      alertslistItemModelObj.anomalyText!,
+                      notification.message,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium,
@@ -58,16 +55,21 @@ class AlertslistItemWidget extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      alertslistItemModelObj.timeText!,
+                      _formatDateTime(notification.createdAt),
                       style: CustomTextStyle.bodyMediumPoppinsBlueA700,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
+  }
+
+  // Fonction utilitaire pour formater la date
+  String _formatDateTime(DateTime dateTime) {
+    return "${dateTime.hour}:${dateTime.minute} - ${dateTime.day}/${dateTime.month}/${dateTime.year}";
   }
 }

@@ -39,8 +39,8 @@ class KPIsResponse {
     Map<String, double> criticalRates = {};
 
     // Collect manually known critical code rates
-    List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_803'];
-    //List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_803', 'rate_of_code_910'];
+    //List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_803'];
+    List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_803', 'rate_of_code_840'];
 
     for (var key in criticalKeys) {
       if (json[key] != null) {

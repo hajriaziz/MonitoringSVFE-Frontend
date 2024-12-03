@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:smtmonitoring/presentation/notification_service.dart';
+import 'package:smtmonitoring/presentation/websocket_connection.dart';
 //import 'package:flutter_svg_provider/flutter_svg_provider.dart' as fs;
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -22,9 +24,24 @@ class TerminalScreen extends StatefulWidget {
 }
 
 class TerminalScreenState extends State<TerminalScreen> {
+  final WebSocketService webSocketService = WebSocketService();
+  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
   @override
   void initState() {
     super.initState();
+    // Démarrez le service WebSocket
+    webSocketService.connect(webSocketUrl);
+
+    // Écoutez les notifications entrantes et déclenchez l'état de notification
+    webSocketService.messages.listen((message) {
+      webSocketService.hasNotification.value = true;
+      // Affiche une notification locale avec le message reçu
+      NotificationService.showNotification("Nouvelle Notification", message);
+    });
+
+    // Initialise et surveille les permissions de notification
+    NotificationService.monitorNotificationPermissions();
+
     Future.microtask(() async {
       final provider = Provider.of<TerminalProvider>(context, listen: false);
 
@@ -36,6 +53,13 @@ class TerminalScreenState extends State<TerminalScreen> {
         print("No token found. Please login.");
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Déconnectez le WebSocket
+    webSocketService.disconnect();
+    super.dispose();
   }
 
   @override
@@ -84,18 +108,25 @@ class TerminalScreenState extends State<TerminalScreen> {
             top: 15.h,
             right: 10.h,
           ),
+          notificationNotifier: ValueNotifier(false),
         ),
         AppbarTrailingIconbutton(
-          imagePath: ImageConstant.imgVector,
+          imagePath: ImageConstant.imgVector, // Icône par défaut
+          imagePathNotification:
+              ImageConstant.imgAlert, // Icône de notification
           margin: EdgeInsets.only(
             left: 11.h,
             top: 15.h,
             right: 30.h,
           ),
+          notificationNotifier:
+              webSocketService.hasNotification, // Gestion dynamique
           onTap: () {
-            onTapArrowleftone2(context);
+            // Réinitialise l'état des notifications après clic
+            webSocketService.resetNotificationState();
+            onTapArrowleftone2(context);;
           },
-        )
+        ),
       ],
     );
   }

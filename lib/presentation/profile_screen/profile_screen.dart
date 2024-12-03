@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:smtmonitoring/core/utils/validation_functions.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
+import 'package:smtmonitoring/presentation/notification_service.dart';
 import 'package:smtmonitoring/presentation/profile_screen/provider/profile_provider.dart';
+import 'package:smtmonitoring/presentation/websocket_connection.dart';
 import 'package:smtmonitoring/widgets/custom_switch.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -29,11 +31,27 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class ProfileScreenState extends State<ProfileScreen> {
+  final WebSocketService webSocketService = WebSocketService();
+  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
+
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    // Démarrez le service WebSocket
+    webSocketService.connect(webSocketUrl);
+
+    // Écoutez les notifications entrantes et déclenchez l'état de notification
+    webSocketService.messages.listen((message) {
+      webSocketService.hasNotification.value = true;
+      // Affiche une notification locale avec le message reçu
+      NotificationService.showNotification("Nouvelle Notification", message);
+    });
+
+    // Initialise et surveille les permissions de notification
+    NotificationService.monitorNotificationPermissions();
+
     // Use Future.microtask to ensure the provider context is available before making the call
     Future.microtask(() async {
       final provider = Provider.of<ProfileProvider>(context, listen: false);
@@ -47,6 +65,13 @@ class ProfileScreenState extends State<ProfileScreen> {
         print("No token found. Please log in.");
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Déconnectez le WebSocket
+    webSocketService.disconnect();
+    super.dispose();
   }
 
   @override
@@ -124,18 +149,25 @@ class ProfileScreenState extends State<ProfileScreen> {
             top: 15.h,
             right: 10.h,
           ),
+          notificationNotifier: ValueNotifier(false),
         ),
         AppbarTrailingIconbutton(
-          imagePath: ImageConstant.imgVector,
+          imagePath: ImageConstant.imgVector, // Icône par défaut
+          imagePathNotification:
+              ImageConstant.imgAlert, // Icône de notification
           margin: EdgeInsets.only(
             left: 11.h,
             top: 15.h,
             right: 30.h,
           ),
+          notificationNotifier:
+              webSocketService.hasNotification, // Gestion dynamique
           onTap: () {
+            // Réinitialise l'état des notifications après clic
+            webSocketService.resetNotificationState();
             onTapArrowleftone2(context);
           },
-        )
+        ),
       ],
     );
   }
@@ -348,15 +380,12 @@ class ProfileScreenState extends State<ProfileScreen> {
                         style: theme.textTheme.titleSmall,
                       ),
                     ),
-                    Selector<ProfileProvider, bool?>(
+                    Selector<ProfileProvider, bool>(
                       selector: (context, provider) =>
                           provider.isSelectedSwitch,
                       builder: (context, isSelectedSwitch, child) {
                         return CustomSwitch(
-                          margin: EdgeInsets.only(
-                            right: 26.h,
-                            bottom: 4.h,
-                          ),
+                          margin: EdgeInsets.only(right: 26, bottom: 4),
                           alignment: Alignment.bottomCenter,
                           value: isSelectedSwitch,
                           onChange: (value) {
@@ -366,7 +395,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                           },
                         );
                       },
-                    )
+                    ),
                   ],
                 ),
               ),

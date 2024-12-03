@@ -2,12 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
+import 'package:smtmonitoring/presentation/notification_service.dart';
+import 'package:smtmonitoring/presentation/websocket_connection.dart';
 import '../models/profile_model.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ApiService apiService;
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   ProfileModel? profileModel;
 
   TextEditingController userNameController = TextEditingController();
@@ -135,9 +140,36 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  // Change the state of the notification switch
-  void changeSwitchBox(bool value) {
+  Future<void> initializeNotificationState() async {
+    final prefs = await SharedPreferences.getInstance();
+    isSelectedSwitch = prefs.getBool('notificationsEnabled') ?? true;
+    notifyListeners();
+  }
+
+  Future<void> changeSwitchBox(bool value) async {
     isSelectedSwitch = value;
     notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', value);
+
+    if (value) {
+      final notificationsEnabled =
+          await NotificationService.areNotificationsEnabled();
+      if (!notificationsEnabled) {
+        await NotificationService.openNotificationSettings();
+      }
+    }
+
+
+    // Reconnect WebSocket if notifications are enabled
+    final websocketService = WebSocketService();
+    const websocketUrl = 'ws://192.168.1.188:8000/ws/notifications';
+
+    if (value) {
+      websocketService.connect(websocketUrl);
+    } else {
+      websocketService.disconnect();
+    }
   }
 }
