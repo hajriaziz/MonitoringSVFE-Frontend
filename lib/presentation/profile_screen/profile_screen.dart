@@ -32,7 +32,6 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
   final WebSocketService webSocketService = WebSocketService();
-  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -40,7 +39,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     // Démarrez le service WebSocket
-    webSocketService.connect(webSocketUrl);
+    webSocketService.connect();
 
     // Écoutez les notifications entrantes et déclenchez l'état de notification
     webSocketService.messages.listen((message) {

@@ -4,8 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smtmonitoring/presentation/profile_screen/models/profile_model.dart';
 
 class ApiService {
-  final String baseUrl = 'http://192.168.1.188:8000';
+  //final String baseUrl = 'http://192.168.1.188:8000';
   //final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'https://smtmonitoring.clictopay.com/api';
 
   // Save token to SharedPreferences
   Future<void> saveToken(String token) async {
@@ -158,8 +159,7 @@ class ApiService {
     }
   }
 
-  // Method to check system status
-  Future<Map<String, dynamic>> fetchSystemStatus(String token) async {
+  Future<String> fetchSystemStatus(String token) async {
     final url = Uri.parse('$baseUrl/system_status/');
     final response = await http.get(
       url,
@@ -170,7 +170,9 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final responseBody = json.decode(response.body);
+      print('Response body: $responseBody');
+      return responseBody['system_status']; // Retourne directement le statut
     } else {
       print('Failed to fetch system status. Status: ${response.statusCode}');
       throw Exception('Failed to fetch system status');

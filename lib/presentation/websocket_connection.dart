@@ -6,8 +6,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class WebSocketService {
   WebSocketChannel? _channel;
   final _messageController = StreamController<String>.broadcast();
-  final  ValueNotifier<bool> hasNotification = ValueNotifier<bool>(false); // <-- Notifie l'état des notifications
-
+  final ValueNotifier<bool> hasNotification =
+      ValueNotifier<bool>(false); // <-- Notifie l'état des notifications
 
   bool _isConnected = false;
   bool notificationsEnabled = true;
@@ -15,15 +15,19 @@ class WebSocketService {
   Stream<String> get messages => _messageController.stream;
 
   bool get isConnected => _isConnected;
+  // Default WebSocket URL
+  //final String _url = 'ws://192.168.1.188:8000/ws/notifications';
+  //final String _url = 'ws://10.0.2.2:8000/ws/notifications';
+  final String _url = 'wss://smtmonitoring.clictopay.com/ws/notifications';
 
-  void connect(String url) {
+  void connect() {
     if (_isConnected) {
       print('WebSocket déjà connecté.');
       return;
     }
 
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(url));
+      _channel = WebSocketChannel.connect(Uri.parse(_url));
       _isConnected = true;
 
       _channel!.stream.listen(
@@ -39,41 +43,42 @@ class WebSocketService {
         onError: (error) {
           print('Erreur WebSocket : $error');
           _isConnected = false;
-          reconnect(url);
+          reconnect();
         },
         onDone: () {
           print('Connexion WebSocket fermée.');
           _isConnected = false;
-          reconnect(url);
+          reconnect();
         },
       );
     } catch (e) {
       print('Erreur lors de la connexion WebSocket : $e');
       _isConnected = false;
-      reconnect(url);
+      reconnect();
     }
   }
-    void resetNotificationState() {
+
+  void resetNotificationState() {
     hasNotification.value = false; // Réinitialise l'état des notifications
   }
 
-  void toggleNotifications(bool enabled, String url) {
+  void toggleNotifications(bool enabled) {
     notificationsEnabled = enabled;
 
     if (enabled) {
       if (!_isConnected) {
-        connect(url);
+        connect();
       }
     } else {
       disconnect();
     }
   }
 
-  void reconnect(String url) {
+  void reconnect() {
     Future.delayed(Duration(seconds: 5), () {
       if (notificationsEnabled) {
         print('Tentative de reconnexion...');
-        connect(url);
+        connect();
       }
     });
   }
@@ -85,9 +90,9 @@ class WebSocketService {
     print('WebSocket déconnecté.');
   }
 
-  void listenToNotificationChanges(String url) {
+  void listenToNotificationChanges() {
     NotificationService.notificationStatusStream.listen((enabled) {
-      toggleNotifications(enabled, url);
+      toggleNotifications(enabled);
     });
   }
 }

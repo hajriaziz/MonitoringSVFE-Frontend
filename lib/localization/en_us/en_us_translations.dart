@@ -11,7 +11,7 @@ final Map<String, String> enUs = {
   "msg_example_example_com": "example@example.com",
   "msg_fingerprint_to": "fingerprint to access",
   "msg_use_fingerprint": "Use fingerprint to access",
-  "msg_username_or_email": "Username or email",
+  "msg_username_or_email": "Email",
   "password": "*************",
 // terminal Screen
   "lbl_26": "26%",
@@ -102,7 +102,7 @@ final Map<String, String> enUs = {
   "msg_29_juillet_10_02": "29 Juillet - 10:02",
   "msg_600_transaction": "600 Transaction",
   "msg_forgot_password": "Forgot Password?",
-  "msg_les_terminaux_par": "Les terminaux par rapport au taux de transaction",
+  "msg_les_terminaux_par": "Taux de refus par canal ",
   "msg_tat_de_svfe_dans": "Etat de SVFE dans les 5 dernieres minutes",
   "msg_tat_des_terminaux": "Etat des terminaux",
   "msg_taux_de_r_ussite":

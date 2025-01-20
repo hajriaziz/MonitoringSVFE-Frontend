@@ -32,6 +32,7 @@ class BarnavPageState extends State<BarnavPage> {
       if (token != null && provider.profileModel == null) {
         // Fetch user profile if not already loaded
         await provider.fetchUserProfile();
+        await provider.fetchSystemStatus();
       } else {
         print("No token found. Please log in.");
       }
@@ -44,13 +45,13 @@ class BarnavPageState extends State<BarnavPage> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: appTheme.lightBlue50,
-        body: SizedBox(
-          width: double.maxFinite,
+        body: SingleChildScrollView(
           child: Column(
             children: [
+              // Monitoring Header Section
               Container(
                 height: 350.h,
-                width: double.maxFinite,
+                width: double.infinity,
                 padding: EdgeInsets.only(top: 102.h),
                 child: Stack(
                   alignment: Alignment.topCenter,
@@ -64,92 +65,117 @@ class BarnavPageState extends State<BarnavPage> {
                   ],
                 ),
               ),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 32.h),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.h,
-                  vertical: 28.h,
-                ),
-                decoration: BoxDecoration(
-                    color: appTheme.blue200,
-                    borderRadius: BorderRadiusStyle.roundedBorderl4),
-                width: double.maxFinite,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (profileProvider.base64Image != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(28.h),
-                        child: Image.memory(
-                          profileProvider.base64Image!,
-                          height: 60.h,
-                          width: 56.h,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else if (profileProvider.imagePath != null &&
-                        profileProvider.imagePath!.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(28.h),
-                        child: Image.network(
-                          profileProvider.imagePath!,
-                          height: 60.h,
-                          width: 56.h,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      CustomImageView(
-                        imagePath: ImageConstant.imgProfil,
-                        height: 60.h,
-                        width: 56.h,
-                        radius: BorderRadius.circular(
-                          28.h,
-                        ),
-                        alignment: Alignment.center,
-                      ),
-                    SizedBox(width: 10.h),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            (profileProvider
-                                        .profileModel?.username?.isNotEmpty ==
-                                    true
-                                ? profileProvider.profileModel!.username
-                                : "SMT Utilisateur")!,
-                            style: CustomTextStyle.titleLargeOnPrimaryBold,
-                          ),
-                          SizedBox(
-                            height: 10.h,
-                          ),
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: "ID: ",
-                                  style: CustomTextStyle
-                                      .labelLargePoppinsOnPrimarySemi8old,
-                                ),
-                                TextSpan(
-                                  text: "2503024",
-                                  style: CustomTextStyle
-                                      .bodyMediumPoppinsOnPrimary,
-                                )
-                              ],
-                            ),
-                            textAlign: TextAlign.left,
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
+
+              // User Profile Section
+              _buildUserProfileSection(profileProvider),
+
+              // System Status Section
+              _buildSystemStatusSection(profileProvider),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserProfileSection(ProfileProvider profileProvider) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 32.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 28.h),
+      decoration: BoxDecoration(
+        color: appTheme.blue200,
+        borderRadius: BorderRadiusStyle.roundedBorderl4,
+      ),
+      width: double.infinity,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (profileProvider.base64Image != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28.h),
+              child: Image.memory(
+                profileProvider.base64Image!,
+                height: 60.h,
+                width: 56.h,
+                fit: BoxFit.cover,
+              ),
+            )
+          else if (profileProvider.imagePath != null &&
+              profileProvider.imagePath!.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28.h),
+              child: Image.network(
+                profileProvider.imagePath!,
+                height: 60.h,
+                width: 56.h,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            CustomImageView(
+              imagePath: ImageConstant.imgProfil,
+              height: 60.h,
+              width: 56.h,
+              radius: BorderRadius.circular(28.h),
+              alignment: Alignment.center,
+            ),
+          SizedBox(width: 10.h),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  profileProvider.profileModel?.username?.isNotEmpty == true
+                      ? profileProvider.profileModel!.username!
+                      : "SMT Utilisateur",
+                  style: CustomTextStyle.titleLargeOnPrimaryBold,
+                ),
+                SizedBox(height: 10.h),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "ID: ",
+                        style:
+                            CustomTextStyle.labelLargePoppinsOnPrimarySemi8old,
+                      ),
+                      TextSpan(
+                        text: "2503024", // Replace with dynamic ID if available
+                        style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSystemStatusSection(ProfileProvider profileProvider) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 32.h, vertical: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 28.h),
+      decoration: BoxDecoration(
+        color: appTheme.blue200,
+        borderRadius: BorderRadiusStyle.roundedBorderl4,
+      ),
+      width: double.infinity,
+      child: Column(
+        children: [
+          Text(
+            "État du système",
+            style: CustomTextStyle.titleLargeOnPrimaryBold,
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            profileProvider.systemStatusModel?.systemStatus ?? "Chargement...",
+            style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

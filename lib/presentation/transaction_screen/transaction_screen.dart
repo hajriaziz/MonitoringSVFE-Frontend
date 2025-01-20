@@ -25,12 +25,11 @@ class TransactionScreen extends StatefulWidget {
 
 class TransactionScreenState extends State<TransactionScreen> {
   final WebSocketService webSocketService = WebSocketService();
-  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
   @override
   void initState() {
     super.initState();
     // Démarrez le service WebSocket
-    webSocketService.connect(webSocketUrl);
+    webSocketService.connect();
 
     // Écoutez les notifications entrantes et déclenchez l'état de notification
     webSocketService.messages.listen((message) {

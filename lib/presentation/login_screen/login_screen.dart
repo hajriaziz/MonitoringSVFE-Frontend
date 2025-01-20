@@ -59,16 +59,18 @@ class LoginScreenState extends State<LoginScreen> {
                       decoration: AppDecoration.fillLightBlue.copyWith(
                         borderRadius: BorderRadiusStyle.customBorderTL70,
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          SizedBox(height: 38.h),
-                          _buildUsernameSection(context),
-                          SizedBox(height: 18.h),
-                          _buildPasswordSection(context),
-                          SizedBox(height: 90.h),
-                          _buildLoginOptions(context)
-                        ],
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            SizedBox(height: 38.h),
+                            _buildUsernameSection(context),
+                            SizedBox(height: 18.h),
+                            _buildPasswordSection(context),
+                            SizedBox(height: 90.h),
+                            _buildLoginOptions(context)
+                          ],
+                        ),
                       ),
                     )
                   ],
@@ -265,20 +267,17 @@ class LoginScreenState extends State<LoginScreen> {
             },
           ),
           SizedBox(height: 18.h),
-          Text(
+          /*Text(
             "msg_forgot_password".tr,
             style: CustomTextStyle.titleSmallLeagueSpartan,
-          ),
-          SizedBox(height: 14.h),
+          ),*/
           /*CustomElevatedButton(
               width: 206.h,
               text: "lbl_sign_up".tr,
               buttonStyle: CustomButtonStyles.fillPrimary,
-              buttonTextStyle: CustomTextStyle.titleLargeTeal900),*/
-          SizedBox(
-            height: 30.h,
-          ),
-          RichText(
+              buttonTextStyle: CustomTextStyle.titleLargeTeal900
+            ),*/
+          /*RichText(
             text: TextSpan(
               children: [
                 TextSpan(
@@ -292,22 +291,16 @@ class LoginScreenState extends State<LoginScreen> {
               ],
             ),
             textAlign: TextAlign.left,
-          ),
+          ),*/
           SizedBox(height: 88.h),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "msg_don_t_have_an_account2".tr,
-                  style: CustomTextStyle.bodyMediumOnPrimaryLight,
-                ),
-                TextSpan(
-                  text: "lbl_sign_up".tr,
-                  style: CustomTextStyle.bodyMediumErrorContainer,
-                )
-              ],
+          CustomImageView(
+            imagePath: ImageConstant.imageMonetiique,
+            height: 90.h,
+            width: 224.h,
+            radius: BorderRadius.circular(
+              4.h,
             ),
-            textAlign: TextAlign.left,
+            margin: EdgeInsets.only(right: 30.h),
           )
         ],
       ),

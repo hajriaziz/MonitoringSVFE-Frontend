@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
 import 'package:smtmonitoring/presentation/notification_service.dart';
 import 'package:smtmonitoring/presentation/websocket_connection.dart';
+import '../../barnav_page/models/barnav_model.dart';
 import '../models/profile_model.dart';
 
 class ProfileProvider extends ChangeNotifier {
@@ -14,6 +15,8 @@ class ProfileProvider extends ChangeNotifier {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   ProfileModel? profileModel;
+  SystemStatusModel? systemStatusModel;
+
 
   TextEditingController userNameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -164,12 +167,35 @@ class ProfileProvider extends ChangeNotifier {
 
     // Reconnect WebSocket if notifications are enabled
     final websocketService = WebSocketService();
-    const websocketUrl = 'ws://192.168.1.188:8000/ws/notifications';
 
     if (value) {
-      websocketService.connect(websocketUrl);
+      websocketService.connect();
     } else {
       websocketService.disconnect();
     }
   }
+  // Méthode pour récupérer le statut du système
+  Future<void> fetchSystemStatus() async {
+  try {
+    isLoading = true;
+    notifyListeners();
+
+    final token = await getTokenFromStorage();
+    if (token == null) {
+      throw Exception('Token introuvable. Veuillez vous reconnecter.');
+    }
+
+    final systemStatus = await apiService.fetchSystemStatus(token);
+
+    // Directement assigner le statut
+    systemStatusModel = SystemStatusModel(systemStatus: systemStatus);
+
+    errorMessage = null;
+  } catch (e) {
+    errorMessage = 'Échec de la récupération du statut du système : $e';
+  } finally {
+    isLoading = false;
+    notifyListeners();
+  }
+}
 }

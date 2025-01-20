@@ -8,7 +8,7 @@ import '../models/barnav_model.dart';
 
 // ignore_for_file: must_be_immutable
 class BarnavProvider extends ChangeNotifier {
-  BarnavModel barnavModelObj = BarnavModel();
+  SystemStatusModel barnavModelObj = SystemStatusModel(systemStatus: '');
   @override
   void dispose() {
     super.dispose();

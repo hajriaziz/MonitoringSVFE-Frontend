@@ -25,7 +25,6 @@ void initializeBackgroundService() {
 
 void onStart(ServiceInstance service) async {
   final webSocketService = WebSocketService();
-  const websocketUrl = 'ws://192.168.1.188:8000/ws/notifications';
 
   if (service is AndroidServiceInstance) {
     service.setForegroundNotificationInfo(
@@ -36,8 +35,8 @@ void onStart(ServiceInstance service) async {
 
   await NotificationService.monitorNotificationPermissions();
 
-  webSocketService.listenToNotificationChanges(websocketUrl);
-  webSocketService.connect(websocketUrl);
+  webSocketService.listenToNotificationChanges();
+  webSocketService.connect();
 
   webSocketService.messages.listen((message) async {
     await NotificationService.showNotification('Notification', message);

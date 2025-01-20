@@ -25,12 +25,11 @@ class TerminalScreen extends StatefulWidget {
 
 class TerminalScreenState extends State<TerminalScreen> {
   final WebSocketService webSocketService = WebSocketService();
-  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
   @override
   void initState() {
     super.initState();
     // Démarrez le service WebSocket
-    webSocketService.connect(webSocketUrl);
+    webSocketService.connect();
 
     // Écoutez les notifications entrantes et déclenchez l'état de notification
     webSocketService.messages.listen((message) {
@@ -124,7 +123,8 @@ class TerminalScreenState extends State<TerminalScreen> {
           onTap: () {
             // Réinitialise l'état des notifications après clic
             webSocketService.resetNotificationState();
-            onTapArrowleftone2(context);;
+            onTapArrowleftone2(context);
+            ;
           },
         ),
       ],
@@ -332,114 +332,118 @@ class TerminalScreenState extends State<TerminalScreen> {
 
   /// Section Widget
   Widget _buildChartSection(
-      BuildContext context, TerminalProvider terminalProvider) {
-    // Extract the values for the chart
-    final dab = terminalProvider.terminalDistribution?.dab ?? 0;
-    final tpe = terminalProvider.terminalDistribution?.tpe ?? 0;
-    final eCommerce = terminalProvider.terminalDistribution?.eCommerce ?? 0;
+    BuildContext context, TerminalProvider terminalProvider) {
+  // Extract refusal rates for the chart
+  final refusalRates = terminalProvider.terminalDistribution?.refusalRateByChannel ?? {};
 
-    // Create a list of PieChartSections
-    List<PieChartSectionData> _generateSections() {
-      return [
-        PieChartSectionData(
-          value: dab.toDouble(),
-          title: 'DAB',
-          color: const Color(0xff0293ee),
-          radius: 50,
-          titleStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        PieChartSectionData(
-          value: tpe.toDouble(),
-          title: 'TPE',
-          color: const Color(0xfff8b250),
-          radius: 50,
-          titleStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        PieChartSectionData(
-          value: eCommerce.toDouble(),
-          title: 'E-Com',
-          color: const Color(0xff845bef),
-          radius: 50,
-          titleStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ];
-    }
+  // Extract the rates for each terminal type
+  final dabRate = refusalRates['1'] ?? 0.0; // DAB
+  final tpeRate = refusalRates['2'] ?? 0.0; // TPE
+  final eComRate = refusalRates['8'] ?? 0.0; // E-commerce
 
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(horizontal: 18.h),
-      child: Column(
-        children: [
-          Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(vertical: 18.h),
-            decoration: AppDecoration.fillOnPrimaryContainer.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorderl4,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 6.h),
-                Text(
-                  "msg_les_terminaux_par".tr,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.titleMedium18,
-                ),
-                SizedBox(height: 2.h),
-                Container(
-                  height: 174.h,
-                  width: 174.h,
-                  child: PieChart(
-                    PieChartData(
-                      sections: _generateSections(),
-                      centerSpaceRadius: 40, // Space in the center
-                      sectionsSpace: 2, // Space between sections
-                    ),
-                  ),
-                ),
-                SizedBox(height: 26.h),
-                Container(
-                  width: double.maxFinite,
-                  margin: EdgeInsets.symmetric(horizontal: 12.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildLegend("DAB", Color(0xff0293ee)),
-                      _buildLegend("TPE", Color(0xfff8b250)),
-                      _buildLegend("E-Com", Color(0xff845bef)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  // Create a list of PieChartSections
+  List<PieChartSectionData> _generateSections() {
+    return [
+      PieChartSectionData(
+        value: dabRate,
+        title: '${dabRate.toStringAsFixed(1)}%', // Show percentage
+        color: const Color(0xff0293ee),
+        radius: 50,
+        titleStyle:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
-    );
+      PieChartSectionData(
+        value: tpeRate,
+        title: '${tpeRate.toStringAsFixed(1)}%', // Show percentage
+        color: const Color(0xfff8b250),
+        radius: 50,
+        titleStyle:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      PieChartSectionData(
+        value: eComRate,
+        title: '${eComRate.toStringAsFixed(1)}%', // Show percentage
+        color: const Color(0xff845bef),
+        radius: 50,
+        titleStyle:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    ];
   }
 
-// Helper widget to build the legend
-  Widget _buildLegend(String label, Color color) {
-    return Row(
+  return Container(
+    width: double.maxFinite,
+    padding: EdgeInsets.symmetric(horizontal: 18.h),
+    child: Column(
       children: [
         Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+          width: double.maxFinite,
+          padding: EdgeInsets.symmetric(vertical: 18.h),
+          decoration: AppDecoration.fillOnPrimaryContainer.copyWith(
+            borderRadius: BorderRadiusStyle.roundedBorderl4,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 6.h),
+              Text(
+                "msg_les_terminaux_par".tr,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.titleMedium18,
+              ),
+              SizedBox(height: 2.h),
+              Container(
+                height: 174.h,
+                width: 174.h,
+                child: PieChart(
+                  PieChartData(
+                    sections: _generateSections(),
+                    centerSpaceRadius: 40, // Space in the center
+                    sectionsSpace: 2, // Space between sections
+                  ),
+                ),
+              ),
+              SizedBox(height: 26.h),
+              Container(
+                width: double.maxFinite,
+                margin: EdgeInsets.symmetric(horizontal: 12.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildLegend("DAB", Color(0xff0293ee)),
+                    _buildLegend("TPE", Color(0xfff8b250)),
+                    _buildLegend("E-Com", Color(0xff845bef)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        SizedBox(width: 8),
-        Text(label, style: CustomTextStyle.titleMediumInterBluegray400_1),
       ],
-    );
-  }
+    ),
+  );
+}
+
+// Helper widget to build the legend
+Widget _buildLegend(String label, Color color) {
+  return Row(
+    children: [
+      Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
+      ),
+      SizedBox(width: 8),
+      Text(label, style: CustomTextStyle.titleMediumInterBluegray400_1),
+    ],
+  );
+}
+
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {

@@ -21,7 +21,7 @@ class TerminalProvider extends ChangeNotifier {
     return prefs.getString('authToken');
   }
 
-// Fetch terminal distribution using the token
+  // Fetch terminal distribution using the token
   Future<void> fetchTerminalDistribution() async {
     isLoading = true;
     notifyListeners();

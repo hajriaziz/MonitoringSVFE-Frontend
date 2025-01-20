@@ -24,14 +24,20 @@ class BanqueScreen extends StatefulWidget {
   }
 }
 
+final Map<String, String> criticalCodeDescriptions = {
+  '802': 'CBS is not available (Issuer Inoperative)',
+  '801': 'Network didn’t respond, timer time-out.',
+  '840': 'Stand-in processing not permitted',
+  // Ajoutez d'autres descriptions ici
+};
+
 class BanqueScreenState extends State<BanqueScreen> {
   final WebSocketService webSocketService = WebSocketService();
-  final String webSocketUrl = "ws://192.168.1.188:8000/ws/notifications";
   @override
   void initState() {
     super.initState();
     // Démarrez le service WebSocket
-    webSocketService.connect(webSocketUrl);
+    webSocketService.connect();
 
     // Écoutez les notifications entrantes et déclenchez l'état de notification
     webSocketService.messages.listen((message) {
@@ -239,7 +245,7 @@ class BanqueScreenState extends State<BanqueScreen> {
               Expanded(
                 child: Container(
                   padding:
-                      EdgeInsets.symmetric(horizontal: 18.h, vertical: 10.h),
+                      EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
                   decoration: AppDecoration.fillLightblue50.copyWith(
                     borderRadius: BorderRadiusStyle.roundedBorderl8,
                   ),
@@ -260,12 +266,22 @@ class BanqueScreenState extends State<BanqueScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
+                                  Tooltip(
+                                    message: criticalCodeDescriptions[
+                                            entry.key] ??
+                                        "Aucune description pour le code critique ${entry.key}.",
+                                    child: Icon(
+                                      Icons.info_outline,
+                                      size: 18.h,
+                                      color: Color.fromARGB(255, 201, 17, 17),
+                                    ),
+                                  ),
                                   Text(
                                     "Code ${entry.key} :",
                                     style: theme.textTheme.bodyLarge,
                                   ),
                                   Text(
-                                    "${entry.value.toStringAsFixed(2)}%", // Affiche valeur correctement
+                                    "${entry.value.toStringAsFixed(2)}%", // Affiche la valeur correctement
                                     style: CustomTextStyle.bodyLargeRedA700,
                                   ),
                                 ],
@@ -307,7 +323,7 @@ class BanqueScreenState extends State<BanqueScreen> {
 
     return Container(
       width: double.maxFinite,
-      padding: EdgeInsets.symmetric(horizontal: 15.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.h),
       child: Column(
         children: [
           Container(
@@ -332,7 +348,7 @@ class BanqueScreenState extends State<BanqueScreen> {
                 Container(
                   width: double.infinity,
                   height: 250.h, // Définir une hauteur pour le graphique
-                  margin: EdgeInsets.symmetric(horizontal: 20.h),
+                  margin: EdgeInsets.symmetric(horizontal: 10.h),
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
@@ -344,7 +360,7 @@ class BanqueScreenState extends State<BanqueScreen> {
                             BarChartRodData(
                               toY: entry.value.toDouble(), // Taux de refus
                               color: Colors.red, // Couleur pour la barre
-                              width: 20.h, // Largeur de la barre
+                              width: 18.h, // Largeur de la barre
                             ),
                           ],
                         );
@@ -365,7 +381,7 @@ class BanqueScreenState extends State<BanqueScreen> {
                               final issuerCode =
                                   top5RefusalRates[value.toInt()].key;
                               return Text(issuerCode,
-                                  style: theme.textTheme.bodyLarge);
+                                  style: theme.textTheme.bodySmall);
                             },
                           ),
                         ),
