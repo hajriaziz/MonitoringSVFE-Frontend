@@ -38,9 +38,13 @@ void onStart(ServiceInstance service) async {
   webSocketService.listenToNotificationChanges();
   webSocketService.connect();
 
-  webSocketService.messages.listen((message) async {
-    await NotificationService.showNotification('Notification', message);
-  });
+webSocketService.messages.listen((message) async {
+  await NotificationService.showNotification(
+    'Notification', // Titre de la notification
+    message, // Corps de la notification (texte court)
+    bigText: message, // Texte complet pour BigTextStyle
+  );
+});
 
   service.on('stopService').listen((event) {
     webSocketService.disconnect();

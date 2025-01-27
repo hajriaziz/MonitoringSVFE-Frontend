@@ -135,12 +135,16 @@ class BarnavPageState extends State<BarnavPage> {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: "ID: ",
+                        text: "Department: ",
                         style:
                             CustomTextStyle.labelLargePoppinsOnPrimarySemi8old,
                       ),
                       TextSpan(
-                        text: "2503024", // Replace with dynamic ID if available
+                        text: profileProvider
+                                    .profileModel?.department?.isNotEmpty ==
+                                true
+                            ? profileProvider.profileModel!.department!
+                            : "SMT ",
                         style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
                       ),
                     ],
@@ -170,10 +174,28 @@ class BarnavPageState extends State<BarnavPage> {
             style: CustomTextStyle.titleLargeOnPrimaryBold,
           ),
           SizedBox(height: 10.h),
-          Text(
-            profileProvider.systemStatusModel?.systemStatus ?? "Chargement...",
-            style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Indicateur visuel (cercle rouge ou vert)
+              Container(
+                width: 12.0,
+                height: 12.h,
+                decoration: BoxDecoration(
+                  color: profileProvider.systemStatusModel?.isStable == true
+                      ? Colors.green // Vert si stable
+                      : Colors.red, // Rouge si non stable
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: 8.0),
+              Text(
+                profileProvider.systemStatusModel?.systemStatus ??
+                    "Chargement...",
+                style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ],
       ),

@@ -37,7 +37,7 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
     webSocketService.messages.listen((message) {
       webSocketService.hasNotification.value = true;
       // Affiche une notification locale avec le message reçu
-      NotificationService.showNotification("Nouvelle Notification", message);
+      //NotificationService.showNotification("Nouvelle Notification", message);
     });
 
     // Initialise et surveille les permissions de notification
@@ -70,24 +70,37 @@ class TransactionParJourScreenState extends State<TransactionParJourScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppBar(context),
-        body: Consumer<Transaction_HistProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (provider.errorMessage != null) {
-              return Center(child: Text(provider.errorMessage!));
-            } else {
-              return _buildTransactionContent(context, provider);
-            }
-          },
-        ),
+@override
+Widget build(BuildContext context) {
+  return SafeArea(
+    child: Scaffold(
+      appBar: _buildAppBar(context),
+      body: Consumer<Transaction_HistProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(), // Indicateur de chargement
+                  SizedBox(height: 16.h), // Espacement entre l'indicateur et le texte
+                  Text(
+                    "Chargement de données...", // Message de chargement
+                    style: Theme.of(context).textTheme.bodyLarge, // Style du texte
+                  ),
+                ],
+              ),
+            );
+          } else if (provider.errorMessage != null) {
+            return Center(child: Text(provider.errorMessage!));
+          } else {
+            return _buildTransactionContent(context, provider);
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// Section widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {

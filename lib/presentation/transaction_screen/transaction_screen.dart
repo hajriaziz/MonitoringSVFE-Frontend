@@ -35,7 +35,7 @@ class TransactionScreenState extends State<TransactionScreen> {
     webSocketService.messages.listen((message) {
       webSocketService.hasNotification.value = true;
       // Affiche une notification locale avec le message reçu
-      NotificationService.showNotification("Nouvelle Notification", message);
+      //NotificationService.showNotification("Nouvelle Notification", message);
     });
 
     // Initialise et surveille les permissions de notification

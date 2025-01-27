@@ -33,26 +33,27 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  static Future<void> showNotification(String title, String body) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'background_service_channel',
-      'Service Notifications',
-      channelDescription: 'Notifications pour les services en arrière-plan',
-      importance: Importance.high,
-      priority: Priority.high,
-      ongoing: true,
-    );
+static Future<void> showNotification(String title, String body, {String? bigText}) async {
+  AndroidNotificationDetails androidDetails = AndroidNotificationDetails( // Supprimez 'const' ici
+    'background_service_channel',
+    'Service Notifications',
+    channelDescription: 'Notifications pour les services en arrière-plan',
+    importance: Importance.high,
+    priority: Priority.high,
+    ongoing: false, // Les notifications peuvent être supprimées
+    styleInformation: bigText != null ? BigTextStyleInformation(bigText) : null, // Utilisez BigTextStyle si bigText est fourni
+  );
 
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-    int uniqueId = Random().nextInt(100000);
+  NotificationDetails platformDetails = NotificationDetails(android: androidDetails); // Supprimez 'const' ici
+  int uniqueId = Random().nextInt(100000);
 
-    await _notificationsPlugin.show(
-      uniqueId,
-      title,
-      body,
-      platformDetails,
-    );
-  }
+  await _notificationsPlugin.show(
+    uniqueId,
+    title,
+    body,
+    platformDetails,
+  );
+}
 
   static Future<bool> areNotificationsEnabled() async {
     return await Permission.notification.isGranted;

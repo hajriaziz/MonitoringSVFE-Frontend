@@ -1,7 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:smtmonitoring/core/utils/validation_functions.dart';
 import 'package:smtmonitoring/presentation/api_service.dart';
 import 'package:smtmonitoring/presentation/notification_service.dart';
 import 'package:smtmonitoring/presentation/profile_screen/provider/profile_provider.dart';
@@ -45,7 +44,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     webSocketService.messages.listen((message) {
       webSocketService.hasNotification.value = true;
       // Affiche une notification locale avec le message reçu
-      NotificationService.showNotification("Nouvelle Notification", message);
+      //NotificationService.showNotification("Nouvelle Notification", message);
     });
 
     // Initialise et surveille les permissions de notification
@@ -102,14 +101,15 @@ class ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildProfileInfo(context),
+                        SizedBox(height: 18.h),
                         _buildUsernameSection(context),
                         SizedBox(height: 28.h),
                         _buildPhoneSection(context),
-                        SizedBox(height: 18.h),
+                        SizedBox(height: 28.h),
                         _buildEmailSection(context),
                         SizedBox(height: 40.h),
                         _buildNotificationsSection(context),
-                        SizedBox(height: 48.h)
+                        SizedBox(height: 60.h)
                       ],
                     ),
                   ),
@@ -189,21 +189,6 @@ class ProfileScreenState extends State<ProfileScreen> {
                     ? profileProvider.profileModel!.username
                     : "SMT Utilisateur")!, // Ensure it's non-null
                 style: CustomTextStyle.titleLargeOnPrimaryBold,
-              ),
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "lbl_id".tr,
-                      style: CustomTextStyle.labelLargePoppinsOnPrimarySemi8old,
-                    ),
-                    TextSpan(
-                      text: "lbl_25030024".tr,
-                      style: CustomTextStyle.bodyMediumPoppinsOnPrimary,
-                    )
-                  ],
-                ),
-                textAlign: TextAlign.left,
               ),
               SizedBox(height: 10.h),
               Align(
@@ -319,7 +304,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           Padding(
             padding: EdgeInsets.only(left: 10.h),
             child: Text(
-              "lbl_email_address".tr,
+              "Department",
               style: theme.textTheme.titleSmall,
             ),
           ),
@@ -331,21 +316,13 @@ class ProfileScreenState extends State<ProfileScreen> {
               builder: (context, emailController, child) {
                 return CustomTextFormField(
                   controller: emailController,
-                  hintText: "msg_example_example_com".tr,
+                  hintText: "Department name".tr,
                   textInputAction: TextInputAction.done,
                   textInputType: TextInputType.emailAddress,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 20.h,
                     vertical: 4.h,
                   ),
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        !isValidEmail(value)) {
-                      return "Please enter a valid email address";
-                    }
-                    return null;
-                  },
                 );
               },
             ),

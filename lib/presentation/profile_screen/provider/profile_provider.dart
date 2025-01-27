@@ -17,7 +17,6 @@ class ProfileProvider extends ChangeNotifier {
   ProfileModel? profileModel;
   SystemStatusModel? systemStatusModel;
 
-
   TextEditingController userNameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -72,7 +71,6 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   // Fetch user profile details
-  // Fetch user profile details
   Future<void> fetchUserProfile() async {
     try {
       isLoading = true;
@@ -89,7 +87,7 @@ class ProfileProvider extends ChangeNotifier {
       // Update controllers with data
       userNameController.text = profileModel?.username ?? '';
       phoneController.text = profileModel?.phone ?? '';
-      emailController.text = profileModel?.email ?? '';
+      emailController.text = profileModel?.department ?? '';
 
       // Handle image source
       final imagePath = profileModel?.imagePath;
@@ -128,6 +126,7 @@ class ProfileProvider extends ChangeNotifier {
       await apiService.updateUserDetails(
         username: userNameController.text,
         phone: phoneController.text,
+        department: emailController.text,
         imageFilePath: imageFilePath,
         token: token,
       );
@@ -164,7 +163,6 @@ class ProfileProvider extends ChangeNotifier {
       }
     }
 
-
     // Reconnect WebSocket if notifications are enabled
     final websocketService = WebSocketService();
 
@@ -174,28 +172,35 @@ class ProfileProvider extends ChangeNotifier {
       websocketService.disconnect();
     }
   }
+
   // Méthode pour récupérer le statut du système
   Future<void> fetchSystemStatus() async {
-  try {
-    isLoading = true;
-    notifyListeners();
+    try {
+      isLoading = true;
+      notifyListeners();
 
-    final token = await getTokenFromStorage();
-    if (token == null) {
-      throw Exception('Token introuvable. Veuillez vous reconnecter.');
+      final token = await getTokenFromStorage();
+      if (token == null) {
+        throw Exception('Token introuvable. Veuillez vous reconnecter.');
+      }
+
+      // Récupérer la réponse de l'API sous forme de chaîne JSON
+      final response = await apiService.fetchSystemStatus(token);
+      print('API Response: $response'); // Log pour déboguer
+
+      // Convertir la chaîne JSON en Map<String, dynamic>
+      final Map<String, dynamic> responseData = jsonDecode(response);
+
+      // Convertir la réponse en modèle SystemStatusModel
+      systemStatusModel = SystemStatusModel.fromJson(responseData);
+
+      errorMessage = null; // Effacer les erreurs précédentes
+    } catch (e) {
+      errorMessage = 'Échec de la récupération du statut du système : $e';
+      print('Error: $e'); // Log pour déboguer
+    } finally {
+      isLoading = false;
+      notifyListeners(); // Notifier les écouteurs que les données ont changé
     }
-
-    final systemStatus = await apiService.fetchSystemStatus(token);
-
-    // Directement assigner le statut
-    systemStatusModel = SystemStatusModel(systemStatus: systemStatus);
-
-    errorMessage = null;
-  } catch (e) {
-    errorMessage = 'Échec de la récupération du statut du système : $e';
-  } finally {
-    isLoading = false;
-    notifyListeners();
   }
-}
 }

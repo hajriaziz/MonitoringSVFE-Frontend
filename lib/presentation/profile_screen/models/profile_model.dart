@@ -1,13 +1,13 @@
 class ProfileModel {
   String? username;
   String? phone;
-  String? email;
+  String? department;
   String? imagePath; // Update the field name to match the backend response
 
   ProfileModel({
     this.username,
     this.phone,
-    this.email,
+    this.department,
     this.imagePath,
   });
 
@@ -16,7 +16,7 @@ class ProfileModel {
     return ProfileModel(
       username: json['username'],
       phone: json['phone'],
-      email: json['email'],
+      department: json['department'],
       imagePath: json['image'], // Map the new field
     );
   }
@@ -26,7 +26,7 @@ class ProfileModel {
     return {
       'username': username,
       'phone': phone,
-      'email': email,
+      'department': department,
       'image_path': imagePath, // Match the backend field
     };
   }

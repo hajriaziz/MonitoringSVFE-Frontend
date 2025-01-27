@@ -36,7 +36,11 @@ class MyApp extends StatelessWidget {
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate
                 ],
-                supportedLocales: [Locale('en', '')],
+                supportedLocales: [
+                  Locale('en', ''), // Anglais
+                  Locale('fr', 'FR'), // Français
+                ],
+                locale: Locale('en', ''), // Définir la locale en français par défaut
                 initialRoute: AppRoutes.initialRoute,
                 routes: AppRoutes.routes,
               );

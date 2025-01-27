@@ -159,26 +159,25 @@ class ApiService {
     }
   }
 
-  Future<String> fetchSystemStatus(String token) async {
-    final url = Uri.parse('$baseUrl/system_status/');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token', // Pass the JWT token
-        'Content-Type': 'application/json',
-      },
-    );
+Future<String> fetchSystemStatus(String token) async {
+  final url = Uri.parse('$baseUrl/system_status/');
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token', // Pass the JWT token
+      'Content-Type': 'application/json',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final responseBody = json.decode(response.body);
-      print('Response body: $responseBody');
-      return responseBody['system_status']; // Retourne directement le statut
-    } else {
-      print('Failed to fetch system status. Status: ${response.statusCode}');
-      throw Exception('Failed to fetch system status');
-    }
+  if (response.statusCode == 200) {
+    final responseBody = utf8.decode(response.bodyBytes); // Décode les bytes en String
+    print('Response body: $responseBody');
+    return responseBody; // Retourne la réponse sous forme de chaîne JSON
+  } else {
+    print('Failed to fetch system status. Status: ${response.statusCode}');
+    throw Exception('Failed to fetch system status');
   }
-
+}
   // Method to fetch transaction trends
   Future<List<Map<String, dynamic>>> fetchTransactionTrends(
       String token) async {
@@ -259,6 +258,7 @@ class ApiService {
     required String token,
     String? username,
     String? phone,
+    String? department,
     String? imageFilePath, // Use consistent naming
   }) async {
     final uri = Uri.parse("$baseUrl/user/update_user/me");
@@ -274,7 +274,9 @@ class ApiService {
     if (phone != null) {
       request.fields['phone'] = phone;
     }
-
+    if (department != null) {
+      request.fields['department'] = department;
+    }
     if (imageFilePath != null) {
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -309,7 +311,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)['alerts'];
+      return jsonDecode(utf8.decode(response.bodyBytes))['alerts'];
     } else {
       print('Failed to fetch alerts. Status: ${response.statusCode}');
       throw Exception('Failed to fetch alerts');

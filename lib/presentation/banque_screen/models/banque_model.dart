@@ -40,7 +40,7 @@ class KPIsResponse {
 
     // Collect manually known critical code rates
     //List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_803'];
-    List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_801', 'rate_of_code_840'];
+    List<String> criticalKeys = ['rate_of_code_802', 'rate_of_code_801', 'rate_of_code_840','rate_of_code_803'];
 
     for (var key in criticalKeys) {
       if (json[key] != null) {
